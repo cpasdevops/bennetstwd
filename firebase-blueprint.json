@@ -1,0 +1,143 @@
+{
+  "entities": {
+    "Assignment": {
+      "title": "Assignment",
+      "description": "An assignment task created by teachers with instructions and deadline.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Title of the assignment",
+          "maxLength": 150
+        },
+        "courseCode": {
+          "type": "string",
+          "description": "Course or subject code",
+          "maxLength": 50
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed instructions and requirements",
+          "maxLength": 2000
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Due date ISO string",
+          "maxLength": 50
+        },
+        "maxMarks": {
+          "type": "number",
+          "description": "Maximum marks possible for this assignment"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp string when assignment was created"
+        }
+      },
+      "required": ["title", "courseCode", "maxMarks"]
+    },
+    "Submission": {
+      "title": "Submission",
+      "description": "Student assignment submission record containing student details, document payload, and teacher grading.",
+      "type": "object",
+      "properties": {
+        "studentName": {
+          "type": "string",
+          "description": "Full name of the student",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "rollNumber": {
+          "type": "string",
+          "description": "Student roll or registration number",
+          "minLength": 2,
+          "maxLength": 50
+        },
+        "assignmentId": {
+          "type": "string",
+          "description": "ID of the assignment submitted for",
+          "maxLength": 100
+        },
+        "assignmentTitle": {
+          "type": "string",
+          "description": "Title of the assigned coursework",
+          "maxLength": 150
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Original file name of uploaded PDF or DOCX",
+          "maxLength": 255
+        },
+        "fileType": {
+          "type": "string",
+          "description": "MIME type or file extension (pdf, docx)",
+          "maxLength": 100
+        },
+        "fileSize": {
+          "type": "number",
+          "description": "File size in bytes"
+        },
+        "fileData": {
+          "type": "string",
+          "description": "Base64 data URL string representing the document preview and download payload",
+          "maxLength": 900000
+        },
+        "fileTextPreview": {
+          "type": "string",
+          "description": "Extracted text preview or abstract for quick review",
+          "maxLength": 10000
+        },
+        "studentNotes": {
+          "type": "string",
+          "description": "Optional student comments or questions",
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of grading (submitted, reviewed, graded)",
+          "enum": ["submitted", "reviewed", "graded"]
+        },
+        "grade": {
+          "type": "number",
+          "description": "Score awarded by teacher"
+        },
+        "maxMarks": {
+          "type": "number",
+          "description": "Maximum possible marks"
+        },
+        "teacherFeedback": {
+          "type": "string",
+          "description": "Feedback notes and evaluation comments",
+          "maxLength": 2000
+        },
+        "submittedAt": {
+          "type": "string",
+          "description": "Submission ISO timestamp"
+        },
+        "gradedAt": {
+          "type": "string",
+          "description": "Grading ISO timestamp"
+        },
+        "gradedBy": {
+          "type": "string",
+          "description": "Teacher name or email who evaluated"
+        }
+      },
+      "required": ["studentName", "rollNumber", "fileName", "fileType", "fileData", "status"]
+    }
+  },
+  "firestore": {
+    "/assignments/{assignmentId}": {
+      "schema": {
+        "$ref": "#/entities/Assignment"
+      },
+      "description": "List of available assignments for students to complete"
+    },
+    "/submissions/{submissionId}": {
+      "schema": {
+        "$ref": "#/entities/Submission"
+      },
+      "description": "All student assignment submissions accessible for grading and real-time viewing"
+    }
+  }
+}

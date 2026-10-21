@@ -1,0 +1,6 @@
+{
+  "name": "EduSubmit - Assignment Submission & Teacher Grading Portal",
+  "description": "Real-time student assignment submission panel and teacher grading dashboard powered by Firebase Firestore.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

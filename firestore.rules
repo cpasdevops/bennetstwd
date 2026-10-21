@@ -1,0 +1,82 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'vidyasharma121@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidAssignment(data) {
+      return data.title is string && data.title.size() >= 2 && data.title.size() <= 150
+        && data.courseCode is string && data.courseCode.size() >= 1 && data.courseCode.size() <= 50
+        && data.maxMarks is number && data.maxMarks >= 0;
+    }
+
+    function isValidSubmission(data) {
+      return data.studentName is string && data.studentName.size() >= 2 && data.studentName.size() <= 100
+        && data.rollNumber is string && data.rollNumber.size() >= 2 && data.rollNumber.size() <= 50
+        && data.fileName is string && data.fileName.size() >= 1 && data.fileName.size() <= 255
+        && data.fileType is string && data.fileType.size() <= 100
+        && data.fileData is string && data.fileData.size() <= 900000
+        && (data.status in ['submitted', 'reviewed', 'graded']);
+    }
+
+    // Assignments collection
+    match /assignments/{assignmentId} {
+      allow read: if true;
+      allow create: if isValidId(assignmentId) && isValidAssignment(incoming());
+      allow update: if isValidId(assignmentId) && isValidAssignment(incoming());
+      allow delete: if isValidId(assignmentId) && isAdmin();
+    }
+
+    // Submissions collection
+    match /submissions/{submissionId} {
+      // Read allows both teachers to see submissions and students to verify receipt
+      allow read: if true;
+      
+      // Create new submission with strict validation blueprint
+      allow create: if isValidId(submissionId) && isValidSubmission(incoming());
+
+      // Update: Teacher grading and feedback or state transitions
+      allow update: if isValidId(submissionId) && isValidSubmission(incoming()) && (
+        isAdmin() ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['grade', 'teacherFeedback', 'status', 'gradedAt', 'gradedBy'])
+      );
+
+      // Delete: admin only
+      allow delete: if isValidId(submissionId) && isAdmin();
+    }
+
+    // Admins collection for role-based security
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
